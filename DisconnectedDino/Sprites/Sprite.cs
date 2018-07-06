@@ -25,11 +25,22 @@ namespace DisconnectedDino.Sprites
 
         public Input Input;
 
-        public virtual Vector2 Position { get; set; }
-
-        public float Speed = 1f;
+        public float Speed = 3f;
 
         public Vector2 Velocity;
+
+        public virtual Vector2 Position { get; set; }
+
+        public virtual Rectangle Rectangle
+        {
+            get
+            {
+                return new Rectangle((int)position.X,
+                                     (int)position.Y,
+                                     texture.Width, 
+                                     texture.Height);
+            }
+        }
 
         #endregion
 

@@ -24,6 +24,8 @@ namespace DisconnectedDino.Managers
 
         public int FrameWidth { get { return animation.FrameWidth; } }
 
+        public int PreFrameHeight;
+
         public AnimationManager() { }
 
         public AnimationManager(Animation animation)
@@ -50,6 +52,9 @@ namespace DisconnectedDino.Managers
             //Keep playing the same animation
             if (this.animation == animation)
                 return;
+
+            //Save the PreFrameHeight
+            this.PreFrameHeight = this.animation.FrameHeight;
 
             //Start the animation
             this.animation = animation;
