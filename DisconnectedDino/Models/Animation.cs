@@ -18,11 +18,11 @@ namespace DisconnectedDino.Models
 
         public int FrameHeight { get { return Texture.Height; } }
 
-        public int Framewidth { get { return Texture.Width / FrameCount; } }
+        public int FrameWidth { get { return Texture.Width / FrameCount; } }
 
         public bool IsLooping { get; set; } 
 
-        public float FrameSpeed { get; set; }
+        public float FrameSpeed { get; set; } /*How quickly animate through the frames*/
 
         public Texture2D Texture { get; private set; }
 
@@ -32,9 +32,9 @@ namespace DisconnectedDino.Models
 
             FrameCount = frameCount;
 
-            IsLooping = true;
+            IsLooping = false;
 
-            FrameSpeed = 1f;
+            FrameSpeed = 0.1f;
         }
     }
 }

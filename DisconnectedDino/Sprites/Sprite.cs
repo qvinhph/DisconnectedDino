@@ -11,17 +11,13 @@ using System.Threading.Tasks;
 
 namespace DisconnectedDino.Sprites
 {
-    public class Sprite
+    public abstract class Sprite
     {
         #region Fields
 
-        protected AnimationManager _animationManager;
+        protected Texture2D texture;
 
-        protected Dictionary<string, Animation> _animations;
-
-        protected Vector2 _position;
-
-        protected Texture2D _texture;
+        protected Vector2 position;
 
         #endregion
 
@@ -29,17 +25,7 @@ namespace DisconnectedDino.Sprites
 
         public Input Input;
 
-        public Vector2 Position
-        {
-            get { return _position; }
-            set
-            {
-                _position = value;
-
-                if (_animationManager != null)
-                    _animationManager.Position = _position;
-            }
-        }
+        public virtual Vector2 Position { get; set; }
 
         public float Speed = 1f;
 
@@ -49,41 +35,23 @@ namespace DisconnectedDino.Sprites
 
         #region Methods
 
-        public virtual void Draw(SpriteBatch spriteBatch)
-        {
-            spriteBatch.Draw(_texture, Position, Color.White);
-        }
-
-        public virtual void Move()
-        {
-            if (Keyboard.GetState().IsKeyDown(Input.Up))
-            {
-                //Jumping
-            }
-            else if (Keyboard.GetState().IsKeyDown(Input.Down))
-            {
-                //Crouching or Go down fast
-            }
-        }
-
-        public Sprite(Dictionary<string, Animation> animations)
-        {
-            _animations = animations;
-            _animationManager = new AnimationManager(_animations.First().Value);
-        }
+        public Sprite() { }
 
         public Sprite(Texture2D texture)
         {
-            _texture = texture;
+            this.texture = texture;
         }
 
-        public virtual void Update(GameTime gameTime, List<Sprite> sprites)
+        public virtual void Draw(SpriteBatch spriteBatch)
         {
-            Move();
+            spriteBatch.Draw(texture, Position, Color.White);
+        }
 
-            Position += Velocity;
-            Velocity = Vector2.Zero;
-        }  
+        public abstract void Move();
+
+        public abstract void Update(GameTime gameTime, List<Sprite> sprites);
+
+        
 
         #endregion
     }

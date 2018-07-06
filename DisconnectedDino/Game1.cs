@@ -1,6 +1,9 @@
-﻿using Microsoft.Xna.Framework;
+﻿using DisconnectedDino.Models;
+using DisconnectedDino.Sprites;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System.Collections.Generic;
 
 namespace DisconnectedDino
 {
@@ -11,6 +14,8 @@ namespace DisconnectedDino
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+
+        private List<Sprite> sprites;
 
         public Game1()
         {
@@ -43,7 +48,30 @@ namespace DisconnectedDino
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            // TODO: use this.Content to load your game content here
+            var dinoAnimations = new Dictionary<string, Animation>()
+            {
+                {"Sleep", new Animation(Content.Load<Texture2D>("Player1/SleepingDino"), 1) },
+                {"Run", new Animation(Content.Load<Texture2D>("Player1/RunningDino"), 2) },
+                {"Jump", new Animation(Content.Load<Texture2D>("Player1/JumpingDino"), 1) },
+                {"Crouch", new Animation(Content.Load<Texture2D>("Player1/CrouchingDino"), 2) },
+            };
+
+            sprites = new List<Sprite>()
+            {
+                new Dino(dinoAnimations)
+                {
+                    Input = new Input()
+                    {
+                        Left = Keys.Left,
+                        Right = Keys.Right,
+                        Down = Keys.Down,
+                        Up = Keys.Up
+                    },
+
+                    Position = new Vector2(100, 400),
+                },
+            };
+                        
         }
 
         /// <summary>
@@ -65,7 +93,8 @@ namespace DisconnectedDino
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            // TODO: Add your update logic here
+            foreach (var sprite in sprites)
+                sprite.Update(gameTime, sprites);
 
             base.Update(gameTime);
         }
@@ -78,7 +107,15 @@ namespace DisconnectedDino
         {
             GraphicsDevice.Clear(Color.White);
 
-            // TODO: Add your drawing code here
+            spriteBatch.Begin();
+
+            foreach (var sprite in sprites)
+            {
+                sprite.Draw(spriteBatch);
+            }
+
+            spriteBatch.End();
+            
 
             base.Draw(gameTime);
         }
