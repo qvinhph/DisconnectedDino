@@ -14,8 +14,10 @@ namespace DisconnectedDino.Sprites
         #region Fields
 
         private int groundWidth;
-        //private int groundHeight = ;
-        
+        private int groundHeight;
+        private int currentFrame;
+        private int totalWidth;
+
         #endregion
 
         #region Properties
@@ -26,18 +28,41 @@ namespace DisconnectedDino.Sprites
 
         #region Methods
 
-        public Ground(Texture2D texture) : base(texture)
+        public Ground(Texture2D texture)
         {
+            this.texture = texture;
+            groundWidth = 1120;
+            groundHeight = TextureHeight;
+            totalWidth = groundWidth;
         }
 
         public override void Move()
         {
-            throw new NotImplementedException();
         }
 
         public override void Update(GameTime gameTime, List<Sprite> sprites)
         {
-            throw new NotImplementedException();
+            if (totalWidth + (int)Speed > texture.Width)
+            {
+                currentFrame = 0;
+                totalWidth = groundWidth;
+            }
+            else
+            {
+                totalWidth += (int)Speed;
+                currentFrame++;
+            }
+        }
+
+        public override void Draw(SpriteBatch spriteBatch)
+        {
+            spriteBatch.Draw(texture,
+                             Position,
+                             new Rectangle((int)(currentFrame * Speed),
+                                           0,
+                                           groundWidth,
+                                           groundHeight),
+                             Color.White);
         }
 
         #endregion

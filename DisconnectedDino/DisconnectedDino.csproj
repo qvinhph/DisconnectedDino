@@ -50,6 +50,7 @@
     <Compile Include="Sprites\Dino.cs" />
     <Compile Include="Sprites\Ground.cs" />
     <Compile Include="Sprites\Sprite.cs" />
+    <Compile Include="Sprites\Tree.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="MonoGame.Framework">

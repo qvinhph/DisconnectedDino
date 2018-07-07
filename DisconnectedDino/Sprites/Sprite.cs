@@ -19,17 +19,33 @@ namespace DisconnectedDino.Sprites
 
         protected Vector2 position;
 
+        protected Rectangle gameBoundaries;
+
         #endregion
 
         #region Properties
 
         public Input Input;
 
-        public float Speed = 3f;
+        public float Speed = 20f;
 
         public Vector2 Velocity;
 
-        public virtual Vector2 Position { get; set; }
+        public virtual Vector2 Position
+        {
+            get { return position; }
+            set { position = value; }
+        }
+
+        public int TextureWidth
+        {
+            get { return texture.Width; }
+        }
+
+        public int TextureHeight
+        {
+            get { return texture.Height; }
+        }
 
         public virtual Rectangle Rectangle
         {
@@ -37,7 +53,7 @@ namespace DisconnectedDino.Sprites
             {
                 return new Rectangle((int)position.X,
                                      (int)position.Y,
-                                     texture.Width, 
+                                     texture.Width,
                                      texture.Height);
             }
         }
@@ -48,9 +64,10 @@ namespace DisconnectedDino.Sprites
 
         public Sprite() { }
 
-        public Sprite(Texture2D texture)
+        public Sprite(Texture2D texture, Rectangle gameBoundaries)
         {
             this.texture = texture;
+            this.gameBoundaries = gameBoundaries;
         }
 
         public virtual void Draw(SpriteBatch spriteBatch)
@@ -58,9 +75,21 @@ namespace DisconnectedDino.Sprites
             spriteBatch.Draw(texture, Position, Color.White);
         }
 
-        public abstract void Move();
+        public virtual void Move()
+        {
+            Velocity.X = -Speed;
+        }
 
-        public abstract void Update(GameTime gameTime, List<Sprite> sprites);
+        public virtual void Update(GameTime gameTime, List<Sprite> sprites)
+        {
+            Move();
+
+            //var newPos = new Vector2(position.X + Velocity.X, position.Y);
+            //Position = newPos;
+            position.X += Velocity.X;
+
+            //Velocity = Vector2.Zero;
+        }
 
         
 

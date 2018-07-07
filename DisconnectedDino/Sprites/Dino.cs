@@ -36,7 +36,7 @@ namespace DisconnectedDino.Sprites
 
         public override Vector2 Position
         {
-            get { return position; }
+            get { return animationManager.Position; }
             set
             {
                 position = value;
@@ -46,28 +46,28 @@ namespace DisconnectedDino.Sprites
             }
         }
 
-        //public override Rectangle Rectangle
-        //{
-        //    get
-        //    {
-        //        return 
-        //    }
-        //}
+        public override Rectangle Rectangle
+        {
+            get
+            {
+                return new Rectangle((int)Position.X,
+                                     (int)Position.Y,
+                                     animationManager.FrameWidth,
+                                     animationManager.FrameHeight);
+            }
+        }
 
         #endregion
 
         #region Methods
 
-        public Dino(Texture2D texture) : base(texture)
-        {
-        }
-
-        public Dino(Dictionary<string, Animation> animations)
+        public Dino(Dictionary<string, Animation> animations, Rectangle gameBoundaries)
         {
             this.animations = animations;
             this.animationManager = new AnimationManager(animations.First().Value);
             this.gravity = 20f;
             this.Speed = 5;
+            this.gameBoundaries = gameBoundaries;
         }
 
         public override void Draw(SpriteBatch spriteBatch)
@@ -85,7 +85,20 @@ namespace DisconnectedDino.Sprites
 
             ProcessCrouching();
 
+            ProcessBoundaries();
+
             animationManager.Update(gameTime);
+        }
+
+        /// <summary>
+        /// Keep the Dino in the screen
+        /// </summary>
+        private void ProcessBoundaries()
+        {
+            var validPositionX = MathHelper.Clamp(Position.X, 0, gameBoundaries.Right - animationManager.FrameWidth);
+            var newPos = new Vector2(validPositionX, Position.Y);
+
+            Position = newPos;
         }
 
         private void ProcessCrouching()
@@ -95,8 +108,8 @@ namespace DisconnectedDino.Sprites
                 if (!hasChangedPositionForCrouching)
                 {
                     //Set the new position to draw
-                    var newY = position.Y + (animationManager.PreFrameHeight - animationManager.FrameHeight);
-                    var newPos = new Vector2(position.X, newY);
+                    var newY = Position.Y + (animationManager.PreFrameHeight - animationManager.FrameHeight);
+                    var newPos = new Vector2(Position.X, newY);
                     Position = newPos;
                     hasChangedPositionForCrouching = true;
                 }                
@@ -108,12 +121,12 @@ namespace DisconnectedDino.Sprites
             if (isJumping == true)
             {
                 //This will process when the Dino is on air.
-                var newPos = new Vector2(position.X, position.Y - acceleration);
+                var newPos = new Vector2(Position.X, Position.Y - acceleration);
                 Position = newPos;
                 acceleration -= 1;
             }
 
-            if (position.Y == 400)
+            if (Position.Y == 400)
             {
                 //When the dino fall onto the ground
                 isJumping = false;
@@ -135,12 +148,12 @@ namespace DisconnectedDino.Sprites
             //Run
             if (Keyboard.GetState().IsKeyDown(Keys.Left))
             {
-                var newPos = new Vector2(position.X - Speed, position.Y);
+                var newPos = new Vector2(Position.X - Speed - 5, Position.Y);
                 Position = newPos;
             }
             if (Keyboard.GetState().IsKeyDown(Keys.Right))
             {
-                var newPos = new Vector2(position.X + Speed, position.Y);
+                var newPos = new Vector2(Position.X + Speed, Position.Y);
                 Position = newPos;
             }
 
@@ -171,8 +184,8 @@ namespace DisconnectedDino.Sprites
                     //Return the default position
                     //Because the Dino hasn't be set to Running yet 
                     //So the PreFrameHeight is still the height of Running Dino, not the Crouching Dino
-                    var newY = position.Y - (animationManager.PreFrameHeight - animationManager.FrameHeight);
-                    var newPos = new Vector2(position.X, newY);
+                    var newY = Position.Y - (animationManager.PreFrameHeight - animationManager.FrameHeight);
+                    var newPos = new Vector2(Position.X, newY);
                     Position = newPos;
                 }
             }
