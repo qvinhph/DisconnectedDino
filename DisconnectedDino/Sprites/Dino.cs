@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using DisconnectedDino.Managers;
 using DisconnectedDino.Models;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
@@ -20,6 +21,8 @@ namespace DisconnectedDino.Sprites
         //A dictionary help mapping the specified act with the according animation.
         private Dictionary<string, Animation> animations;
 
+        private Dictionary<string, SoundEffect> soundEffects;
+
         private float acceleration;
 
         private float gravity;
@@ -30,7 +33,7 @@ namespace DisconnectedDino.Sprites
 
         private bool hasChangedPositionForCrouching;
 
-        private float timer;
+        private bool isAlive;
 
         #endregion
 
@@ -63,13 +66,15 @@ namespace DisconnectedDino.Sprites
 
         #region Methods
 
-        public Dino(Dictionary<string, Animation> animations, Rectangle gameBoundaries)
+        public Dino(Dictionary<string, Animation> animations, 
+            Dictionary<string, SoundEffect> soundEffects, Rectangle gameBoundaries)
         {
             this.animations = animations;
             this.animationManager = new AnimationManager(animations.First().Value);
             this.gravity = 20f;
             this.Speed = 5;
             this.gameBoundaries = gameBoundaries;
+            this.soundEffects = soundEffects;
         }
 
         public override void Draw(SpriteBatch spriteBatch)
@@ -81,6 +86,8 @@ namespace DisconnectedDino.Sprites
         {
             Move();
 
+            isAlive = !CheckCollision(gameObjects);
+
             SetAnimation();
 
             ProcessJumping();
@@ -89,11 +96,14 @@ namespace DisconnectedDino.Sprites
 
             ProcessBoundaries();
 
-            timer += (float)gameTime.ElapsedGameTime.TotalSeconds;
-
             animationManager.Update(gameTime);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gameObjects"></param>
+        /// <returns>True if has collisition. Otherwise false.</returns>
         public override bool CheckCollision(List<Sprite> gameObjects)
         {
             foreach (var sprite in gameObjects)
@@ -110,8 +120,15 @@ namespace DisconnectedDino.Sprites
 
         private void SetAnimation()
         {
-            if (isJumping)
+            if (!isAlive)
+            {
+                animationManager.Play(animations["Dead"]);
+                soundEffects["DeadSound"].Play();
+            }
+            else if (isJumping)
+            {
                 animationManager.Play(animations["Jump"]);
+            }
             else if (isCrouching)
                 animationManager.Play(animations["Crouch"]);
             else
@@ -137,6 +154,9 @@ namespace DisconnectedDino.Sprites
             {
                 isJumping = true;
                 acceleration = gravity;
+
+                var instance = soundEffects["JumpSound"].CreateInstance();
+                instance.Play();
             }
 
             //Crouch
@@ -204,7 +224,7 @@ namespace DisconnectedDino.Sprites
 
             if (Position.Y == 400)
             {
-                //When the dino fall onto the ground
+                //When the dino reach the ground
                 isJumping = false;
             }
         }

@@ -35,5 +35,10 @@ namespace DisconnectedDino
         {
             spriteBatch.DrawString(font, Text, Position, Color.DimGray);
         }
+
+        public void Draw(SpriteBatch spriteBatch, float scale)
+        {
+            spriteBatch.DrawString(font, Text, Position, Color.DimGray, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+        }
     }
 }

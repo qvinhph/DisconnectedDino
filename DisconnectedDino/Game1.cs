@@ -1,8 +1,10 @@
 ﻿using DisconnectedDino.Models;
 using DisconnectedDino.Sprites;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
 using System;
 using System.Collections.Generic;
 
@@ -35,8 +37,6 @@ namespace DisconnectedDino
 
         private Random random;
 
-        private Tree lastTree;
-
         private int spaceFromTheLastTree;
 
         private int rightSpaceToAddTree;
@@ -59,8 +59,16 @@ namespace DisconnectedDino
 
         private StringText gameOverText;
 
+        private StringText instructionText;
+
+        private Song backgroundSong;
+
+        private Dictionary<string, Animation> dinoAnimations;
+
+        private Dictionary<string, SoundEffect> dinoSoundEffects;
+
         #endregion
-        
+
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -90,6 +98,11 @@ namespace DisconnectedDino
         /// </summary>
         protected override void LoadContent()
         {
+            //Load background music
+            //backgroundMusic = Content.Load<Song>("SuperMarioBros");
+            backgroundSong = Content.Load<Song>("Sound/Song");
+            MediaPlayer.Play(backgroundSong);
+
             //Load font
             currentScore = new Score(Content.Load<SpriteFont>("FontScore"))
             {
@@ -109,6 +122,12 @@ namespace DisconnectedDino
                 Position = new Vector2(150, 160),
             };
 
+            instructionText = new StringText(Content.Load<SpriteFont>("FontText"))
+            {
+                Text = "- enter to retry -",
+                Position = new Vector2(380, 280),
+            };
+
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
@@ -116,9 +135,11 @@ namespace DisconnectedDino
             timer = 0;
             timeSpan = 20;
             gameSpeed = 10;
+            spaceFromTheLastTree = 0;
+            rightSpaceToAddTree = 1000;
 
             //Initial the remaining time to add fly dino
-            remainingTimeToAddFlyDino = 2f;
+            remainingTimeToAddFlyDino = 20f;
 
             //Initial the remaining time to add cloud
             remainingTimeToAddCloud = 0f;
@@ -148,12 +169,19 @@ namespace DisconnectedDino
             };
 
             //Load dictionary of all the animations of Dino
-            var dinoAnimations = new Dictionary<string, Animation>()
+            dinoAnimations = new Dictionary<string, Animation>()
             {
                 {"Sleep", new Animation(Content.Load<Texture2D>("Player1/SleepingDino"), 1) },
                 {"Run", new Animation(Content.Load<Texture2D>("Player1/RunningDino"), 2) },
                 {"Jump", new Animation(Content.Load<Texture2D>("Player1/JumpingDino"), 1) },
                 {"Crouch", new Animation(Content.Load<Texture2D>("Player1/CrouchingDino"), 2) },
+                {"Dead", new Animation(Content.Load<Texture2D>("Player1/DeadDino"), 1) },
+            };
+
+            dinoSoundEffects = new Dictionary<string, SoundEffect>()
+            {
+                {"JumpSound", Content.Load<SoundEffect>("Sound/JumpSound")},
+                {"DeadSound", Content.Load<SoundEffect>("Sound/DeadSound")},
             };
 
             //Load tree textures
@@ -173,7 +201,7 @@ namespace DisconnectedDino
             gameObjects = new List<Sprite>()
             {
                 //Create Dino
-                new Dino(dinoAnimations, gameBoundaries)
+                new Dino(dinoAnimations, dinoSoundEffects, gameBoundaries)
                 {
                     Input = new Input()
                     {
@@ -199,7 +227,7 @@ namespace DisconnectedDino
         /// </summary>
         protected override void UnloadContent()
         {
-            // TODO: Unload any non ContentManager content here
+            //None
         }
 
         /// <summary>
@@ -209,7 +237,12 @@ namespace DisconnectedDino
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            if (gameOver)
+            if (gameOver && Keyboard.GetState().IsKeyDown(Keys.Enter))
+            {
+                Restart();
+                return;
+            }
+            else if (gameOver)
                 return;
 
             //Increase speed time by time
@@ -234,9 +267,9 @@ namespace DisconnectedDino
             //Add the new tree
             if (onTimeToAddTree(gameTime))
             {
-                lastTree = GetRandomTreeTexture(treeTextures);
+                var tree = GetRandomTreeTexture(treeTextures);
 
-                gameObjects.Add(lastTree);
+                gameObjects.Add(tree);
             }
 
             //Add the new flydino
@@ -288,7 +321,11 @@ namespace DisconnectedDino
                 //Check collision
                 //
                 if (gameObjects[i] is Dino)
-                    gameOver = gameObjects[i].CheckCollision(gameObjects);
+                    if (gameObjects[i].CheckCollision(gameObjects))
+                    {
+                        gameOver = true;
+                        MediaPlayer.Stop();
+                    }
             }
 
             //
@@ -323,22 +360,65 @@ namespace DisconnectedDino
             currentScore.Draw(spriteBatch, "    ME   ");
 
             if (gameOver)
+            {
                 gameOverText.Draw(spriteBatch);
-
+                instructionText.Draw(spriteBatch, 0.5f);
+            }
+                
             spriteBatch.End();
 
             base.Draw(gameTime);
         }
 
         #region Essential methods
-        
+
+        private void Restart()
+        {
+            gameObjects.Clear();
+
+            //Re-create gameObjects
+            gameObjects = new List<Sprite>()
+            {
+                //Create Dino
+                new Dino(dinoAnimations, dinoSoundEffects, gameBoundaries)
+                {
+                    Input = new Input()
+                    {
+                        Left = Keys.Left,
+                        Right = Keys.Right,
+                        Down = Keys.Down,
+                        Up = Keys.Up
+                    },
+
+                    Position = new Vector2(80, 400),
+                },
+
+                new Ground(Content.Load<Texture2D>("Background/Ground"))
+                {
+                    Position = new Vector2(40, 475)
+                },
+            };
+
+            //Default initial value
+            timer = 0;
+            timeSpan = 20;
+            gameSpeed = 10;
+            currentScore.Value = 0;
+            remainingTimeToAddCloud = 0f;
+            remainingTimeToAddFlyDino = 20f;
+            spaceFromTheLastTree = 0;
+            rightSpaceToAddTree = 1000;
+            gameOver = false;
+            MediaPlayer.Play(backgroundSong);
+        }
+
         private bool onTimeToAddFlyDino(GameTime gameTime)
         {
             bool result;
 
             if (remainingTimeToAddFlyDino <= 0)
             {
-                remainingTimeToAddFlyDino = GetRandomFloat(7, 15);
+                remainingTimeToAddFlyDino = GetRandomFloat(6, 12);
                 result = true;
             }
             else
@@ -364,7 +444,8 @@ namespace DisconnectedDino
             }
             else
             {
-                spaceFromTheLastTree = (int)(gameBoundaries.Width - lastTree.Position.X);
+                //spaceFromTheLastTree = (int)(gameBoundaries.Width - lastTree.Position.X);
+                spaceFromTheLastTree += (int)gameSpeed;
                 result = false;
             }
 
