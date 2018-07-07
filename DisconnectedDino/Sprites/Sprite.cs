@@ -27,7 +27,7 @@ namespace DisconnectedDino.Sprites
 
         public Input Input;
 
-        public float Speed = 20f;
+        public float Speed = 6f;
 
         public Vector2 Velocity;
 
@@ -64,6 +64,11 @@ namespace DisconnectedDino.Sprites
 
         public Sprite() { }
 
+        public Sprite(Texture2D texture)
+        {
+            this.texture = texture;
+        }
+
         public Sprite(Texture2D texture, Rectangle gameBoundaries)
         {
             this.texture = texture;
@@ -77,18 +82,16 @@ namespace DisconnectedDino.Sprites
 
         public virtual void Move()
         {
-            Velocity.X = -Speed;
+            Velocity.X -= Speed;
         }
 
         public virtual void Update(GameTime gameTime, List<Sprite> sprites)
         {
             Move();
-
-            //var newPos = new Vector2(position.X + Velocity.X, position.Y);
-            //Position = newPos;
+                        
             position.X += Velocity.X;
 
-            //Velocity = Vector2.Zero;
+            Velocity = Vector2.Zero;
         }
 
         

@@ -25,17 +25,31 @@ namespace DisconnectedDino
 
         private List<Sprite> gameObjects;
 
+        private List<float> flyDinoSpeeds;
+
+        private List<Vector2> flyDinoPositions;
+
+        private List<Vector2> cloudPositions;
+
+        private List<float> gameSpeedList;
+
+        private Animation flyDinoAnimation;
+
         private Ground ground;
 
         private Random random;
 
-        private int spaceToAddTree;
+        private Tree lastTree;
 
         private int spaceFromTheLastTree;
 
-        private Tree lastTree;
+        private int rightSpaceToAddTree;
 
-        private float remainingTimeToAddNewTree;
+        private float remainingTimeToAddFlyDino;
+
+        private float remainingTimeToAddCloud;
+
+        private float gameSpeed;
 
         public Game1()
         {
@@ -68,14 +82,53 @@ namespace DisconnectedDino
         {
             random = new Random();
 
-            remainingTimeToAddNewTree = 1f;
+            //Initial the remaining time to add fly dino
+            remainingTimeToAddFlyDino = 15f;
 
-            // Create a new SpriteBatch, which can be used to draw textures.
-            spriteBatch = new SpriteBatch(GraphicsDevice);
+            //Initial the remaining time to add cloud
+            remainingTimeToAddCloud = 0f;
 
             //Get the game boundaries
             gameBoundaries = new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
 
+            //Load the clo
+
+            //Create list to choose due to the game time
+            gameSpeedList = new List<float>
+            {
+                6f,
+                9f,
+                12f,
+                15f
+            };
+
+            //Create list to choose randomly from to set for FlyDino
+            flyDinoSpeeds = new List<float>
+            {
+                8f,
+                12f,
+                16f,
+            };
+
+            cloudPositions = new List<Vector2>
+            {
+                new Vector2(gameBoundaries.Width, 50),
+                new Vector2(gameBoundaries.Width, 100),
+                new Vector2(gameBoundaries.Width, 160),
+                new Vector2(gameBoundaries.Width, 210),
+                new Vector2(gameBoundaries.Width, 260),
+            };
+
+            flyDinoPositions = new List<Vector2>
+            {
+                new Vector2(gameBoundaries.Width, 200),
+                new Vector2(gameBoundaries.Width, 380),
+                new Vector2(gameBoundaries.Width, 360),
+            };
+
+            // Create a new SpriteBatch, which can be used to draw textures.
+            spriteBatch = new SpriteBatch(GraphicsDevice);
+            
             //Load dictionary of all the animations of Dino
             var dinoAnimations = new Dictionary<string, Animation>()
             {
@@ -84,6 +137,9 @@ namespace DisconnectedDino
                 {"Jump", new Animation(Content.Load<Texture2D>("Player1/JumpingDino"), 1) },
                 {"Crouch", new Animation(Content.Load<Texture2D>("Player1/CrouchingDino"), 2) },
             };
+
+            //Load the animation of Fly Dino
+            flyDinoAnimation = new Animation(Content.Load<Texture2D>("Obstacles/FlyDino/FlyDino"), 2);
 
             //Load tree textures
             treeTextures = new List<Texture2D>()
@@ -142,34 +198,150 @@ namespace DisconnectedDino
             //Update the ground
             ground.Update(gameTime, gameObjects);
 
-            //Update the trees - add the new tree and remove the passed tree
+            //Add the cloud
+            if (onTimeToAddCloud(gameTime))
+            {
+                var cloud = new Cloud(Content.Load<Texture2D>("Background/Cloud"))
+                {
+                    Position = GetRandomCloudPosition()
+                };
+
+                gameObjects.Add(cloud);
+            }
+
+            //Add the new tree
             if (onTimeToAddTree(gameTime))
             {
                 lastTree = GetRandomTreeTexture(treeTextures);
-                spaceFromTheLastTree = 0;
+
                 gameObjects.Add(lastTree);
             }            
 
+            //Add the new flydino
+            if (onTimeToAddFlyDino(gameTime))
+            {
+                var flyDino = new FlyDino(flyDinoAnimation)
+                {
+                    Position = GetRandomFlyDinoPosition(),
+                    Speed = GetRandomFlyDinoSpeed()
+                };
+
+                gameObjects.Add(flyDino);
+            }
+            
             //Update the game objects
-            foreach (var sprite in gameObjects)
-                sprite.Update(gameTime, gameObjects);
+            for (int i = 0; i < gameObjects.Count; i++)
+            {
+                gameObjects[i].Update(gameTime, gameObjects);
+
+                //Remove the out-screen object
+                if (gameObjects[i] is Tree || gameObjects[i] is FlyDino)
+                {
+                    if (gameObjects[i].Position.X + gameObjects[i].Rectangle.Width <= 0)
+                    {
+                        gameObjects.RemoveAt(i);
+                        i--;
+                    }
+                }
+            }
 
             base.Update(gameTime);
+        }
+
+        /// <summary>
+        /// This is called when the game should draw itself.
+        /// </summary>
+        /// <param name="gameTime">Provides a snapshot of timing values.</param>
+        protected override void Draw(GameTime gameTime)
+        {
+            GraphicsDevice.Clear(Color.White);
+
+            spriteBatch.Begin();
+
+            //Draw the ground
+            ground.Draw(spriteBatch);
+
+            //Draw the game objects
+            foreach (var sprite in gameObjects)
+            {
+                sprite.Draw(spriteBatch);
+            }
+
+            spriteBatch.End();
+
+            base.Draw(gameTime);
+        }
+
+        private float GetRandomFlyDinoSpeed()
+        {
+            int index = random.Next(0, flyDinoSpeeds.Count - 1);
+            return flyDinoSpeeds[index];
+        }
+
+        private Vector2 GetRandomFlyDinoPosition()
+        {
+            int index = random.Next(0, flyDinoPositions.Count - 1);
+            return flyDinoPositions[index];
+        }
+
+        private Vector2 GetRandomCloudPosition()
+        {
+            int index = random.Next(0, cloudPositions.Count - 1);
+            return cloudPositions[index];
+        }
+
+        private bool onTimeToAddFlyDino(GameTime gameTime)
+        {
+            bool result;
+
+            if (remainingTimeToAddFlyDino <= 0)
+            {
+                remainingTimeToAddFlyDino = GetRandomFloat(7, 15);
+                result = true;
+            }
+            else
+            {
+                //Countdown
+                remainingTimeToAddFlyDino -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+                result = false;
+            }
+
+            return result;
         }
 
         private bool onTimeToAddTree(GameTime gameTime)
         {
             bool result;
 
-            if (remainingTimeToAddNewTree <= 0)
+            if (rightSpaceToAddTree <= spaceFromTheLastTree)
             {
-                //Random time to add new tree
-                remainingTimeToAddNewTree = GetRandomFloat(0.4f, 2.5f);
+                //Random new right space to add new tree
+                rightSpaceToAddTree = random.Next(400, 1000);
+                spaceFromTheLastTree = 0;
                 result = true;
             }
             else
             {
-                remainingTimeToAddNewTree -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+                spaceFromTheLastTree = (int)(gameBoundaries.Width - lastTree.Position.X);
+                result = false;
+            }
+
+            return result;
+        }
+
+        private bool onTimeToAddCloud(GameTime gameTime)
+        {
+            bool result;
+
+            if (remainingTimeToAddCloud <= 0)
+            {
+                remainingTimeToAddCloud = GetRandomFloat(0.2f, 2f);
+                result = true;
+            }
+            else
+            {
+                //Countdown
+                remainingTimeToAddCloud -= (float)gameTime.ElapsedGameTime.TotalSeconds;
                 result = false;
             }
 
@@ -192,7 +364,7 @@ namespace DisconnectedDino
                 position = new Vector2(gameBoundaries.Width, 400);
             }
 
-            var tree = new Tree(treeTextures[index], gameBoundaries)
+            var tree = new Tree(treeTextures[index])
             {
                 Position = position
             };
@@ -217,28 +389,5 @@ namespace DisconnectedDino
             return (float)randomFloat;
         }
 
-        /// <summary>
-        /// This is called when the game should draw itself.
-        /// </summary>
-        /// <param name="gameTime">Provides a snapshot of timing values.</param>
-        protected override void Draw(GameTime gameTime)
-        {
-            GraphicsDevice.Clear(Color.White);
-
-            spriteBatch.Begin();
-
-            //Draw the ground
-            ground.Draw(spriteBatch);
-
-            //Draw the game objects
-            foreach (var sprite in gameObjects)
-            {
-                sprite.Draw(spriteBatch);
-            }
-
-            spriteBatch.End();            
-
-            base.Draw(gameTime);
-        }
     }
 }

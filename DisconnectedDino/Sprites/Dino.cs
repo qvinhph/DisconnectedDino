@@ -90,6 +90,64 @@ namespace DisconnectedDino.Sprites
             animationManager.Update(gameTime);
         }
 
+        private void SetAnimation()
+        {
+            if (isJumping)
+                animationManager.Play(animations["Jump"]);
+            else if (isCrouching)
+                animationManager.Play(animations["Crouch"]);
+            else
+                animationManager.Play(animations["Run"]);
+        }
+
+        public override void Move()
+        {
+            //Run
+            if (Keyboard.GetState().IsKeyDown(Keys.Left))
+            {
+                var newPos = new Vector2(Position.X - Speed - 5, Position.Y);
+                Position = newPos;
+            }
+            if (Keyboard.GetState().IsKeyDown(Keys.Right))
+            {
+                var newPos = new Vector2(Position.X + Speed, Position.Y);
+                Position = newPos;
+            }
+
+            //Jump
+            if (Keyboard.GetState().IsKeyDown(Keys.Up) && isJumping == false)
+            {
+                isJumping = true;
+                acceleration = gravity;
+            }
+
+            //Crouch
+            if (Keyboard.GetState().IsKeyDown(Keys.Down))
+            {
+                if (!isCrouching && !isJumping)
+                {
+                    isCrouching = true;
+                }
+            }
+
+            //Remove crouching
+            if (isCrouching)
+            {
+                if (Keyboard.GetState().IsKeyUp(Keys.Down))
+                {
+                    isCrouching = false;
+                    hasChangedPositionForCrouching = false;
+
+                    //Return the default position
+                    //Because the Dino hasn't be set to Running yet 
+                    //So the PreFrameHeight is still the height of Running Dino, not the Crouching Dino
+                    var newY = Position.Y - (animationManager.PreFrameHeight - animationManager.FrameHeight);
+                    var newPos = new Vector2(Position.X, newY);
+                    Position = newPos;
+                }
+            }
+        }
+
         /// <summary>
         /// Keep the Dino in the screen
         /// </summary>
@@ -130,64 +188,6 @@ namespace DisconnectedDino.Sprites
             {
                 //When the dino fall onto the ground
                 isJumping = false;
-            }
-        }
-
-        private void SetAnimation()
-        {
-            if (isJumping)
-                animationManager.Play(animations["Jump"]);
-            else if (isCrouching)
-                animationManager.Play(animations["Crouch"]);
-            else
-                animationManager.Play(animations["Run"]);
-        }
-
-        public override void Move()
-        {
-            //Run
-            if (Keyboard.GetState().IsKeyDown(Keys.Left))
-            {
-                var newPos = new Vector2(Position.X - Speed - 5, Position.Y);
-                Position = newPos;
-            }
-            if (Keyboard.GetState().IsKeyDown(Keys.Right))
-            {
-                var newPos = new Vector2(Position.X + Speed, Position.Y);
-                Position = newPos;
-            }
-
-            //Jump
-            if (Keyboard.GetState().IsKeyDown(Keys.Up) && isJumping == false)
-            {
-                isJumping = true;
-                acceleration = gravity;
-            }
-
-            //Crouch
-            if (Keyboard.GetState().IsKeyDown(Keys.Down))
-            {
-                if (!isCrouching && !isJumping)
-                {
-                    isCrouching = true;                    
-                }
-            }
-            
-            //Remove crouching
-            if (isCrouching)
-            {
-                if (Keyboard.GetState().IsKeyUp(Keys.Down))
-                {
-                    isCrouching = false;
-                    hasChangedPositionForCrouching = false;
-
-                    //Return the default position
-                    //Because the Dino hasn't be set to Running yet 
-                    //So the PreFrameHeight is still the height of Running Dino, not the Crouching Dino
-                    var newY = Position.Y - (animationManager.PreFrameHeight - animationManager.FrameHeight);
-                    var newPos = new Vector2(Position.X, newY);
-                    Position = newPos;
-                }
             }
         }
 

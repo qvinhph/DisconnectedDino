@@ -1,18 +1,24 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace DisconnectedDino.Sprites
 {
-    public class Tree : Sprite
+    public class Cloud : Sprite
     {
         #region Fields
 
-        //None
+        public new float Speed
+        {
+            get { return base.Speed - 4f; }
+            set
+            {
+                base.Speed = value - 4f;
+            }
+        }
 
         #endregion
 
@@ -23,18 +29,11 @@ namespace DisconnectedDino.Sprites
         #endregion
 
         #region Methods
-            
-        public Tree()
-        {
 
-        }
-
-        public Tree(Texture2D texture) : base(texture)
+        public Cloud(Texture2D texture) : base(texture)
         {
         }
 
         #endregion
-
-
     }
 }

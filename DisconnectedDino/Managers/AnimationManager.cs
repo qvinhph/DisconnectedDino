@@ -45,6 +45,22 @@ namespace DisconnectedDino.Managers
                              Color.White);                        
         }
 
+        public void Draw(SpriteBatch spriteBatch, Vector2 position)
+        {
+            spriteBatch.Draw(animation.Texture,
+                             position,
+                             /*Get the single frame from sprite sheet*/
+                             new Rectangle(animation.CurrentFrame * animation.FrameWidth,
+                                           0,
+                                           animation.FrameWidth,
+                                           animation.FrameHeight),
+                             Color.White);
+        }
+
+        /// <summary>
+        /// Play the specified animation.
+        /// </summary>
+        /// <param name="animation"></param>
         public void Play(Animation animation)
         {
             this.animation.IsLooping = true;
@@ -62,6 +78,14 @@ namespace DisconnectedDino.Managers
             this.animation.CurrentFrame = 0;
 
             timer = 0;
+        }
+
+        /// <summary>
+        /// Play the current animation that the animation manager keeping track
+        /// </summary>
+        public void Play()
+        {
+            this.animation.IsLooping = true;
         }
 
         public void Stop()
