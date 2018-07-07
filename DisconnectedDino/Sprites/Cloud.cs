@@ -11,14 +11,7 @@ namespace DisconnectedDino.Sprites
     {
         #region Fields
 
-        public new float Speed
-        {
-            get { return base.Speed - 4f; }
-            set
-            {
-                base.Speed = value - 4f;
-            }
-        }
+        //None
 
         #endregion
 

@@ -59,7 +59,7 @@ namespace DisconnectedDino.Sprites
             animationManager.Draw(spriteBatch);
         }
 
-        public override void Update(GameTime gameTime, List<Sprite> sprites)
+        public override void Update(GameTime gameTime, List<Sprite> gameObjects)
         {
             SetAnimation();
                       
@@ -67,7 +67,7 @@ namespace DisconnectedDino.Sprites
             animationManager.Update(gameTime);
 
             //To change the position of FlyDino
-            base.Update(gameTime, sprites);
+            base.Update(gameTime, gameObjects);
         }
 
         public void SetAnimation()

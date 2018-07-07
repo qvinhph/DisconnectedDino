@@ -32,7 +32,7 @@ namespace DisconnectedDino.Sprites
         {
             this.texture = texture;
             groundWidth = 1120;
-            groundHeight = TextureHeight;
+            groundHeight = Rectangle.Height;
             totalWidth = groundWidth;
         }
 
@@ -40,7 +40,7 @@ namespace DisconnectedDino.Sprites
         {
         }
 
-        public override void Update(GameTime gameTime, List<Sprite> sprites)
+        public override void Update(GameTime gameTime, List<Sprite> gameObjects)
         {
             if (totalWidth + (int)Speed > texture.Width)
             {

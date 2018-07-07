@@ -13,6 +13,8 @@ namespace DisconnectedDino
     /// </summary>
     public class Game1 : Game
     {
+        #region Fields
+
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
@@ -25,17 +27,11 @@ namespace DisconnectedDino
 
         private List<Sprite> gameObjects;
 
-        private List<float> flyDinoSpeeds;
-
         private List<Vector2> flyDinoPositions;
 
         private List<Vector2> cloudPositions;
 
-        private List<float> gameSpeedList;
-
         private Animation flyDinoAnimation;
-
-        private Ground ground;
 
         private Random random;
 
@@ -49,8 +45,16 @@ namespace DisconnectedDino
 
         private float remainingTimeToAddCloud;
 
+        private bool gameOver;
+
+        private float timer;
+
+        private float timeSpan;
+
         private float gameSpeed;
 
+        #endregion
+        
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -80,10 +84,16 @@ namespace DisconnectedDino
         /// </summary>
         protected override void LoadContent()
         {
+            // Create a new SpriteBatch, which can be used to draw textures.
+            spriteBatch = new SpriteBatch(GraphicsDevice);
+
             random = new Random();
+            timer = 0;
+            timeSpan = 20;
+            gameSpeed = 10;
 
             //Initial the remaining time to add fly dino
-            remainingTimeToAddFlyDino = 15f;
+            remainingTimeToAddFlyDino = 2f;
 
             //Initial the remaining time to add cloud
             remainingTimeToAddCloud = 0f;
@@ -91,25 +101,18 @@ namespace DisconnectedDino
             //Get the game boundaries
             gameBoundaries = new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
 
-            //Load the clo
-
-            //Create list to choose due to the game time
-            gameSpeedList = new List<float>
-            {
-                6f,
-                9f,
-                12f,
-                15f
-            };
+            //Load the animation of Fly Dino
+            flyDinoAnimation = new Animation(Content.Load<Texture2D>("Obstacles/FlyDino/FlyDino"), 2);
 
             //Create list to choose randomly from to set for FlyDino
-            flyDinoSpeeds = new List<float>
+            flyDinoPositions = new List<Vector2>
             {
-                8f,
-                12f,
-                16f,
+                new Vector2(gameBoundaries.Width, 150),
+                new Vector2(gameBoundaries.Width, 380),
+                new Vector2(gameBoundaries.Width, 360),
             };
 
+            //Create list to choose randomly from to set for Cloud
             cloudPositions = new List<Vector2>
             {
                 new Vector2(gameBoundaries.Width, 50),
@@ -119,16 +122,6 @@ namespace DisconnectedDino
                 new Vector2(gameBoundaries.Width, 260),
             };
 
-            flyDinoPositions = new List<Vector2>
-            {
-                new Vector2(gameBoundaries.Width, 200),
-                new Vector2(gameBoundaries.Width, 380),
-                new Vector2(gameBoundaries.Width, 360),
-            };
-
-            // Create a new SpriteBatch, which can be used to draw textures.
-            spriteBatch = new SpriteBatch(GraphicsDevice);
-            
             //Load dictionary of all the animations of Dino
             var dinoAnimations = new Dictionary<string, Animation>()
             {
@@ -137,9 +130,6 @@ namespace DisconnectedDino
                 {"Jump", new Animation(Content.Load<Texture2D>("Player1/JumpingDino"), 1) },
                 {"Crouch", new Animation(Content.Load<Texture2D>("Player1/CrouchingDino"), 2) },
             };
-
-            //Load the animation of Fly Dino
-            flyDinoAnimation = new Animation(Content.Load<Texture2D>("Obstacles/FlyDino/FlyDino"), 2);
 
             //Load tree textures
             treeTextures = new List<Texture2D>()
@@ -170,12 +160,11 @@ namespace DisconnectedDino
 
                     Position = new Vector2(80, 400),
                 },
-            };
 
-            //Load ground
-            ground = new Ground(Content.Load<Texture2D>("Background/Ground"))
-            {
-                Position = new Vector2(40, 475)
+                new Ground(Content.Load<Texture2D>("Background/Ground"))
+                {
+                    Position = new Vector2(40, 475)
+                },
             };
         }
 
@@ -194,9 +183,16 @@ namespace DisconnectedDino
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
-        {            
-            //Update the ground
-            ground.Update(gameTime, gameObjects);
+        {
+            if (gameOver)
+                return;
+
+            timer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+            if (timer > timeSpan && gameSpeed < 15)
+            {
+                gameSpeed += 2;
+                timeSpan = timer * 2;
+            }
 
             //Add the cloud
             if (onTimeToAddCloud(gameTime))
@@ -215,7 +211,7 @@ namespace DisconnectedDino
                 lastTree = GetRandomTreeTexture(treeTextures);
 
                 gameObjects.Add(lastTree);
-            }            
+            }
 
             //Add the new flydino
             if (onTimeToAddFlyDino(gameTime))
@@ -223,19 +219,37 @@ namespace DisconnectedDino
                 var flyDino = new FlyDino(flyDinoAnimation)
                 {
                     Position = GetRandomFlyDinoPosition(),
-                    Speed = GetRandomFlyDinoSpeed()
                 };
 
                 gameObjects.Add(flyDino);
-            }
-            
+            }            
+
             //Update the game objects
             for (int i = 0; i < gameObjects.Count; i++)
             {
+                //
+                //Update the game speed
+                //
+                if (gameObjects[i] is FlyDino)
+                {
+                    /*The FlyDino will be faster.*/
+                    gameObjects[i].Speed = gameSpeed + gameSpeed * 0.4f;
+                }
+                else if (gameObjects[i] is Cloud)
+                {
+                    /*The Cloud will be slower than everything. It make sense in real life :) */
+                    gameObjects[i].Speed = gameSpeed - gameSpeed * 0.3f;
+                }
+                else
+                    gameObjects[i].Speed = gameSpeed;
+
                 gameObjects[i].Update(gameTime, gameObjects);
 
+
+                //
                 //Remove the out-screen object
-                if (gameObjects[i] is Tree || gameObjects[i] is FlyDino)
+                //
+                if (gameObjects[i] is Tree || gameObjects[i] is FlyDino || gameObjects[i] is Cloud)
                 {
                     if (gameObjects[i].Position.X + gameObjects[i].Rectangle.Width <= 0)
                     {
@@ -243,6 +257,12 @@ namespace DisconnectedDino
                         i--;
                     }
                 }
+
+                //
+                //Check collision
+                //
+                if (gameObjects[i] is Dino)
+                    gameOver = gameObjects[i].CheckCollision(gameObjects);
             }
 
             base.Update(gameTime);
@@ -257,10 +277,7 @@ namespace DisconnectedDino
             GraphicsDevice.Clear(Color.White);
 
             spriteBatch.Begin();
-
-            //Draw the ground
-            ground.Draw(spriteBatch);
-
+            
             //Draw the game objects
             foreach (var sprite in gameObjects)
             {
@@ -272,24 +289,8 @@ namespace DisconnectedDino
             base.Draw(gameTime);
         }
 
-        private float GetRandomFlyDinoSpeed()
-        {
-            int index = random.Next(0, flyDinoSpeeds.Count - 1);
-            return flyDinoSpeeds[index];
-        }
-
-        private Vector2 GetRandomFlyDinoPosition()
-        {
-            int index = random.Next(0, flyDinoPositions.Count - 1);
-            return flyDinoPositions[index];
-        }
-
-        private Vector2 GetRandomCloudPosition()
-        {
-            int index = random.Next(0, cloudPositions.Count - 1);
-            return cloudPositions[index];
-        }
-
+        #region Essential methods
+        
         private bool onTimeToAddFlyDino(GameTime gameTime)
         {
             bool result;
@@ -316,7 +317,7 @@ namespace DisconnectedDino
             if (rightSpaceToAddTree <= spaceFromTheLastTree)
             {
                 //Random new right space to add new tree
-                rightSpaceToAddTree = random.Next(400, 1000);
+                rightSpaceToAddTree = random.Next(400, 1100);
                 spaceFromTheLastTree = 0;
                 result = true;
             }
@@ -335,7 +336,7 @@ namespace DisconnectedDino
 
             if (remainingTimeToAddCloud <= 0)
             {
-                remainingTimeToAddCloud = GetRandomFloat(0.2f, 2f);
+                remainingTimeToAddCloud = GetRandomFloat(0.5f, 2f);
                 result = true;
             }
             else
@@ -352,7 +353,7 @@ namespace DisconnectedDino
         {
             var index = random.Next(0, 7);
             var position = new Vector2();
-            
+
             if (index <= 3)
             {
                 //Is low tree
@@ -389,5 +390,18 @@ namespace DisconnectedDino
             return (float)randomFloat;
         }
 
+        private Vector2 GetRandomFlyDinoPosition()
+        {
+            int index = random.Next(0, flyDinoPositions.Count - 1);
+            return flyDinoPositions[index];
+        }
+
+        private Vector2 GetRandomCloudPosition()
+        {
+            int index = random.Next(0, cloudPositions.Count - 1);
+            return cloudPositions[index];
+        }
+
+        #endregion
     }
 }

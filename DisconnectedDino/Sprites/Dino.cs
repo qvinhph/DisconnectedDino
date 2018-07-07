@@ -30,6 +30,8 @@ namespace DisconnectedDino.Sprites
 
         private bool hasChangedPositionForCrouching;
 
+        private float timer;
+
         #endregion
 
         #region Properties
@@ -75,7 +77,7 @@ namespace DisconnectedDino.Sprites
             animationManager.Draw(spriteBatch);
         }
 
-        public override void Update(GameTime gameTime, List<Sprite> sprites)
+        public override void Update(GameTime gameTime, List<Sprite> gameObjects)
         {
             Move();
 
@@ -87,7 +89,23 @@ namespace DisconnectedDino.Sprites
 
             ProcessBoundaries();
 
+            timer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+
             animationManager.Update(gameTime);
+        }
+
+        public override bool CheckCollision(List<Sprite> gameObjects)
+        {
+            foreach (var sprite in gameObjects)
+            {
+                if (sprite is Dino || sprite is Cloud || sprite is Ground)
+                    continue;
+
+                if (this.Rectangle.Intersects(sprite.Rectangle))
+                    return true;
+            }
+
+            return false;
         }
 
         private void SetAnimation()

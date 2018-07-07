@@ -27,7 +27,7 @@ namespace DisconnectedDino.Sprites
 
         public Input Input;
 
-        public float Speed = 6f;
+        public float Speed;
 
         public Vector2 Velocity;
 
@@ -35,16 +35,6 @@ namespace DisconnectedDino.Sprites
         {
             get { return position; }
             set { position = value; }
-        }
-
-        public int TextureWidth
-        {
-            get { return texture.Width; }
-        }
-
-        public int TextureHeight
-        {
-            get { return texture.Height; }
         }
 
         public virtual Rectangle Rectangle
@@ -85,7 +75,7 @@ namespace DisconnectedDino.Sprites
             Velocity.X -= Speed;
         }
 
-        public virtual void Update(GameTime gameTime, List<Sprite> sprites)
+        public virtual void Update(GameTime gameTime, List<Sprite> gameObjects)
         {
             Move();
                         
@@ -94,7 +84,10 @@ namespace DisconnectedDino.Sprites
             Velocity = Vector2.Zero;
         }
 
-        
+        public virtual bool CheckCollision(List<Sprite> gameObjects)
+        {
+            return false;
+        }
 
         #endregion
     }
