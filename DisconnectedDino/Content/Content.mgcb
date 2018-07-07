@@ -37,6 +37,20 @@
 /processorParam:TextureFormat=Color
 /build:Background/Ground.png
 
+#begin FontScore.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:FontScore.spritefont
+
+#begin FontText.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:FontText.spritefont
+
 #begin Obstacles/FlyDino/FlyDino.png
 /importer:TextureImporter
 /processor:TextureProcessor

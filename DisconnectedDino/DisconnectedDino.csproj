@@ -47,12 +47,14 @@
     <Compile Include="Models\Input.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Score.cs" />
     <Compile Include="Sprites\Cloud.cs" />
     <Compile Include="Sprites\Dino.cs" />
     <Compile Include="Sprites\FlyDino.cs" />
     <Compile Include="Sprites\Ground.cs" />
     <Compile Include="Sprites\Sprite.cs" />
     <Compile Include="Sprites\Tree.cs" />
+    <Compile Include="StringText.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="MonoGame.Framework">

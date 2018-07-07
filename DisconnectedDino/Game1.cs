@@ -53,6 +53,12 @@ namespace DisconnectedDino
 
         private float gameSpeed;
 
+        private Score currentScore;
+
+        private Score highScore;
+
+        private StringText gameOverText;
+
         #endregion
         
         public Game1()
@@ -84,6 +90,25 @@ namespace DisconnectedDino
         /// </summary>
         protected override void LoadContent()
         {
+            //Load font
+            currentScore = new Score(Content.Load<SpriteFont>("FontScore"))
+            {
+                Position = new Vector2(900, 55),
+                Value = 0
+            };
+
+            highScore = new Score(Content.Load<SpriteFont>("FontScore"))
+            {
+                Position = new Vector2(900, 20),
+                Value = 0
+            };
+
+            gameOverText = new StringText(Content.Load<SpriteFont>("FontText"))
+            {
+                Text = "G A M E     O V E R",
+                Position = new Vector2(150, 160),
+            };
+
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
@@ -187,6 +212,7 @@ namespace DisconnectedDino
             if (gameOver)
                 return;
 
+            //Increase speed time by time
             timer += (float)gameTime.ElapsedGameTime.TotalSeconds;
             if (timer > timeSpan && gameSpeed < 15)
             {
@@ -265,6 +291,15 @@ namespace DisconnectedDino
                     gameOver = gameObjects[i].CheckCollision(gameObjects);
             }
 
+            //
+            // Calculate scrore
+            //
+            currentScore.Value = (int)timer;
+            if (currentScore.Value > highScore.Value)
+            {
+                highScore.Value = currentScore.Value;
+            }
+            
             base.Update(gameTime);
         }
 
@@ -283,6 +318,12 @@ namespace DisconnectedDino
             {
                 sprite.Draw(spriteBatch);
             }
+
+            highScore.Draw(spriteBatch, "BEST   ");
+            currentScore.Draw(spriteBatch, "    ME   ");
+
+            if (gameOver)
+                gameOverText.Draw(spriteBatch);
 
             spriteBatch.End();
 
