@@ -67,6 +67,8 @@ namespace DisconnectedDino
 
         private Dictionary<string, SoundEffect> dinoSoundEffects;
 
+        private bool isStarted = false;
+
         #endregion
 
         public Game1()
@@ -101,7 +103,6 @@ namespace DisconnectedDino
             //Load background music
             //backgroundMusic = Content.Load<Song>("SuperMarioBros");
             backgroundSong = Content.Load<Song>("Sound/Song");
-            MediaPlayer.Play(backgroundSong);
 
             //Load font
             currentScore = new Score(Content.Load<SpriteFont>("FontScore"))
@@ -124,7 +125,7 @@ namespace DisconnectedDino
 
             instructionText = new StringText(Content.Load<SpriteFont>("FontText"))
             {
-                Text = "- enter to retry -",
+                Text = "- enter to start -",
                 Position = new Vector2(380, 280),
             };
 
@@ -237,6 +238,18 @@ namespace DisconnectedDino
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
+            //Game Menu
+            if (!isStarted)
+            {
+                if(Keyboard.GetState().IsKeyDown(Keys.Enter))
+                {
+                    isStarted = true;
+                    instructionText.Text = "- enter to retry -";
+                    MediaPlayer.Play(backgroundSong);
+                }
+                return;
+            }
+
             if (gameOver && Keyboard.GetState().IsKeyDown(Keys.Enter))
             {
                 Restart();
@@ -356,12 +369,19 @@ namespace DisconnectedDino
                 sprite.Draw(spriteBatch);
             }
 
+            //Draw the score
             highScore.Draw(spriteBatch, "BEST   ");
             currentScore.Draw(spriteBatch, "    ME   ");
 
+            //Draw the instruction
             if (gameOver)
             {
                 gameOverText.Draw(spriteBatch);
+                instructionText.Draw(spriteBatch, 0.5f);
+            }
+
+            if (!isStarted)
+            {
                 instructionText.Draw(spriteBatch, 0.5f);
             }
                 

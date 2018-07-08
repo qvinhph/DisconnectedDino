@@ -36,10 +36,6 @@ namespace DisconnectedDino.Sprites
             totalWidth = groundWidth;
         }
 
-        public override void Move()
-        {
-        }
-
         public override void Update(GameTime gameTime, List<Sprite> gameObjects)
         {
             if (totalWidth + (int)Speed > texture.Width)
